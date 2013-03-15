@@ -49,6 +49,11 @@ class BtreeNode
 			return key[n];
 		}
 
+		void setKey( int n, KeyId newKey )
+		{
+			key[n] = newKey;
+		}
+
 		BtreeNode* getPtr( int n )
 		{
 			return ptr[n];

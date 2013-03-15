@@ -40,6 +40,8 @@ class BtreeBuilder
 		//deletes the specified key from the tree
 		Status deleteBuilderKey( KeyId );
 
+		Status searchForLeafNode( KeyId, BtreeNode*, BtreeNode*&);
+
 		//1st argument(arg) is the key that we need to insert
 		//In 2nd arg, we store the key value that we need to insert in parent node after splitting node
 		//3rd is the node which is full and needs split
