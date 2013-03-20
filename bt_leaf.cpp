@@ -6,22 +6,19 @@
  */
 
 #include "bt_errors.h"
+#include "bt_leaf.h"
 
-BtreeLeaf::~BtreeLeaf()
-{
-}
-
-Status BtreeLeaf::insertKey( KeyId key, int value )
+Status BtreeLeaf::insertKey( KeyId newKey, int value )
 {
 	int numCurrentKeys = get_keyCount();
-	KeyId currentKey = key;
-	int currentValue = value;
+	KeyId currentKey = newKey;
+	BtreeNode* currentValue = (BtreeNode*)value;
 	Status retStatus = DONE;
 
 	if (numCurrentKeys == 0)
 	{
 		key[0] = currentKey;
-		ptr[0] = value;
+		ptr[0] = currentValue;
 	}
 	else if( numCurrentKeys == MAX_NUM_KEYS )
 	{
@@ -43,7 +40,7 @@ Status BtreeLeaf::insertKey( KeyId key, int value )
 				BtreeNode* tempPtr = ptr[i];
 
 				key[i] = currentKey;
-				ptr[i] = currentValue;
+				ptr[i] = (BtreeNode*)currentValue;
 
 				currentKey = tempKey;
 				currentValue = tempPtr;
@@ -57,7 +54,7 @@ Status BtreeLeaf::insertKey( KeyId key, int value )
 		 * right by one.
 		 */
 		key[numCurrentKeys+1] = currentKey;
-		ptr[numCurrentKeys+1] = currentKey;
+		ptr[numCurrentKeys+1] = (BtreeNode*)currentValue;
 	}
 
 	return (retStatus);

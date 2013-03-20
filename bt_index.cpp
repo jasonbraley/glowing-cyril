@@ -6,6 +6,7 @@
  */
 
 #include "bt_errors.h"
+#include "bt_index.h"
 
 Status BtreeIndex::insertKey( KeyId key, int keyCount, BtreeNode*& leftChild,
 		BtreeNode*& rightChild )

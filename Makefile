@@ -10,13 +10,14 @@ CC=g++
 
 CFLAGS= -DUNIX -Wall -g
 
-SRCS =  bt_main.cpp\
+SRCS = bt_builder.cpp \
+	bt_main.cpp\
 	bt_driver.cpp\
 	bt_node.cpp\
 	bt_index.cpp\
 	bt_leaf.cpp\
-	bt_scan.cpp\
-	bt_builder.cpp
+	bt_scan.cpp
+	
 
 all: $(MAIN)
 	

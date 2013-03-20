@@ -27,7 +27,9 @@ class BtreeLeaf: public BtreeNode
 		}
 		;
 
-		virtual ~BtreeLeaf();
+		virtual ~BtreeLeaf()
+		{
+		}
 
 		//insert to node, key of type KeyId and keyCount-int
 		Status insertKey( KeyId, int );

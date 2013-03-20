@@ -6,7 +6,7 @@
  */
 
 #include <unistd.h>
-#include <bt_builder.h>
+#include "bt_builder.h"
 
 BtreeBuilder::~BtreeBuilder()
 {
@@ -23,8 +23,8 @@ Status BtreeBuilder::insertBuilderKey( KeyId newKey )
 	searchForLeafNode( newKey, root, node );
 
 	/* We found the right leaf node. Insert the key. */
-	BtreeLeaf* leaf = node;
-	retStatus = leaf->insertKey(newKey, NULL);
+	BtreeLeaf* leaf = (BtreeLeaf*)node;
+	retStatus = leaf->insertKey(newKey, 0);
 
 	/*
 	 * Now check the status to see whether we need to do
@@ -33,27 +33,13 @@ Status BtreeBuilder::insertBuilderKey( KeyId newKey )
 	if (retStatus == LEAF_IS_FULL)
 	{
 		KeyId* parentId;
-		BtreeNode* currentNode = searchNode;
+		BtreeNode* currentNode = leaf;
 		BtreeNode* leftPtr = NULL;
 		BtreeNode* rightPtr = NULL;
 
 		retStatus = splitNode(0, parentId, currentNode, leftPtr, rightPtr );
 		if( retStatus == DONE )
 		{
-			BtreeIndex* parent = searchNode->get_parentPtr();
-			if( parent == NULL )
-			{
-				parent = new BtreeIndex();
-				root = parent;
-				leftPtr->set_parentPtr(parent);
-				rightPtr->set_parentPtr(parent);
-			}
-
-			retStatus = parent->insertKey(*parentId, 0, leftPtr, rightPtr);
-			if( retStatus == INDEX_IS_FULL)
-			{
-
-			}
 
 		}
 		else
@@ -73,7 +59,7 @@ Status BtreeBuilder::searchForLeafNode( KeyId key, BtreeNode* root, BtreeNode*& 
 	while (searchNode->get_type() != LEAF)
 	{
 		BtreeNode* temp = NULL;
-		BtreeIndex* index = searchNode;
+		BtreeIndex* index = (BtreeIndex*)searchNode;
 		index->searchKey(key, 0, temp);
 		searchNode = temp;
 	}
@@ -93,33 +79,75 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId*& parentKey,
 {
 	BtreeNode* newNode = NULL;
 
-
 	if( currentNode->get_type() == LEAF )
 	{
-		newNode = new BtreeLeaf();
-		for( int i=0; i<MAX_NUM_KEYS/2; i++ )
+		KeyId tempKeyData[MAX_NUM_KEYS+1]; 		//holds all of the key data that is in current node.
+		BtreeNode* tempPtrData[MAX_NUM_PTRS+1]; 	// holds all of the ptr data that's in current node.
+
+		// copy out all of the key data
+		for(int i=0; i<MAX_NUM_KEYS; i++)
 		{
-			int readKey = currentNode->getKey(i);
-			BtreeNode* readPtr = currentNode->getPtr(i);
+			// insert the new key in its correct position in the mix.
+			if( key < currentNode->getKey(i) )
+			{
+				tempKeyData[i] = key;
+				tempPtrData[i] = NULL;
+				i += 1;
+			}
 
-
+			tempKeyData[i] = currentNode->getKey(i);
+			tempPtrData[i] = currentNode->getPtr(i);
 		}
+
+		// create the new node
+		newNode = new BtreeLeaf();
+		newNode->set_parentPtr( currentNode->get_parentPtr() );
+		newNode->setPtr( currentNode->getPtr(MAX_NUM_PTRS-1), MAX_NUM_PTRS-1);
+
+		// wipe the old node back to zero keys and chain it with the new.
+		currentNode->set_keyCount(0);
+		currentNode->setPtr(newNode, MAX_NUM_PTRS-1);
+
+		// figure out which one is the middle key.
+		int middleKeyIndex = (MAX_NUM_KEYS+1)/2;
+		KeyId middleKeyValue = currentNode->getKey(middleKeyIndex);
+
+		/* Distribute the data amidst the two nodes */
+		for( int i=0; i<MAX_NUM_KEYS+1; i++ )
+		{
+			BtreeLeaf* leafNode = NULL;
+			if( i < middleKeyIndex )
+			{
+				leafNode = (BtreeLeaf*)currentNode;
+			}
+			else if ( i > middleKeyIndex )
+			{
+				leafNode = (BtreeLeaf*)newNode;
+			}
+
+			if( leafNode != NULL )
+			{
+				Status sts = leafNode->insertKey(tempKeyData[i], 0 );
+				if( sts != OK )
+				{
+					cout << "Something went horribly awry" << endl;
+				}
+			}
+		}
+
+
 	}
 	else
 	{
 		newNode = new BtreeIndex();
 	}
 
-	newNode->set_parentPtr(currentNode->get_parentPtr());
-
-
-
 	return OK;
 }
 
 BtreeScan* BtreeBuilder::openScan( KeyId lo_key, KeyId hi_key )
 {
-return OK;
+	return (new BtreeScan());
 }
 
 Status BtreeBuilder::findStartPosition( BtreeScan* scanner, KeyId int1 )
