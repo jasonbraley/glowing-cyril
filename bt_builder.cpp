@@ -14,10 +14,11 @@ BtreeBuilder::~BtreeBuilder()
 	delete root;
 }
 
-Status BtreeBuilder::insertBuilderKey( KeyId newKey )
+Status BtreeBuilder::insertBuilderKey( KeyId argKey )
 {
 	BtreeNode* node = NULL;
 	Status retStatus;
+	KeyId newKey = argKey;
 
 	/* Given the root, look for the appropriate leaf node. */
 	searchForLeafNode( newKey, root, node );
@@ -36,26 +37,58 @@ Status BtreeBuilder::insertBuilderKey( KeyId newKey )
 		BtreeNode* currentNode = leaf;
 		BtreeNode* leftPtr = NULL;
 		BtreeNode* rightPtr = NULL;
+		bool done = false;
 
+		/* Leaf was full. Split that node. */
 		retStatus = splitNode( newKey, parentId, currentNode, leftPtr, rightPtr );
-		if( retStatus == OK )
+		if( retStatus != OK )
 		{
-			BtreeIndex* indexPtr = (BtreeIndex*)leaf->get_parentPtr();
+			cout << "Something is borked" << endl;
+			exit(4);
+		}
+
+		/* The new key was inserted when we split the node */
+		newKey = parentId;
+		currentNode = leftPtr->get_parentPtr();
+
+		/*
+		 * We need to add the new node to the tree. To that end
+		 * we will insert it into the parent. If that makes the parent split
+		 * we'll go through again.
+		 */
+		while( done == false )
+		{
+			BtreeIndex* indexPtr = (BtreeIndex*)currentNode;
+
+			/* Create a new index if we've reached the top. */
 			if (indexPtr == NULL)
 			{
 				indexPtr = new BtreeIndex();
 				leftPtr->set_parentPtr(indexPtr);
 				rightPtr->set_parentPtr(indexPtr);
 			}
+
+			/* We've got the currentParent. Try inserting it. If we succeed, we're done. */
+			retStatus = indexPtr->insertKey(newKey, 0, leftPtr, rightPtr);
+			if (retStatus == INDEX_IS_FULL)
+			{
+				retStatus = splitNode(newKey, parentId, indexPtr, leftPtr, rightPtr);
+				if (retStatus != OK)
+				{
+					cout << "Something is borked" << endl;
+					exit(3);
+				}
+				else
+				{
+					currentNode = indexPtr->get_parentPtr();
+					newKey = parentId;
+				}
+			}
 			else
 			{
-				retStatus = indexPtr->insertKey(parentId,)
+				done = true;
 			}
 
-		}
-		else
-		{
-			cout << "Something is borked" <<endl;
 		}
 	}
 
@@ -92,27 +125,34 @@ Status BtreeBuilder::deleteBuilderKey( KeyId delKey )
 Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey, BtreeNode* currentNode, BtreeNode*& leftPtr, BtreeNode*& rightPtr )
 {
 	BtreeNode* newNode = NULL;
+	const int maxTempKeySize = MAX_NUM_KEYS + 1;	// this will be big enough to contain all the key data in the original node plus the new one.
+	const int maxTempPtrsSize = MAX_NUM_PTRS + 1; 	// this will be big enough to contain all the ptr data in the original node plus the new one.
+	KeyId tempKeyData[maxTempKeySize]; 			//holds all of the key data that is in current node.
+	BtreeNode* tempPtrData[maxTempPtrsSize]; // holds all of the ptr data that's in current node.
+
+	// copy out all of the key data; there's one more ptr than there
+	// is keys. Make sure we don't overrun the buffer.
+	int tempIndex = 0;
+	for (int i = 0; i < MAX_NUM_PTRS; i++, tempIndex++ )
+	{
+		// insert the new key in its correct position in the mix.
+		if ( i < MAX_NUM_KEYS && key < currentNode->getKey(i))
+		{
+			tempKeyData[tempIndex] = key;
+			tempPtrData[tempIndex] = rightPtr;
+			tempIndex += 1;
+		}
+
+		if( i < MAX_NUM_KEYS )
+		{
+			tempKeyData[tempIndex] = currentNode->getKey(i);
+		}
+
+		tempPtrData[tempIndex] = currentNode->getPtr(i);
+	}
 
 	if( currentNode->get_type() == LEAF )
 	{
-		KeyId tempKeyData[MAX_NUM_KEYS+1]; 		//holds all of the key data that is in current node.
-		BtreeNode* tempPtrData[MAX_NUM_PTRS+1]; 	// holds all of the ptr data that's in current node.
-
-		// copy out all of the key data
-		for(int i=0; i<MAX_NUM_KEYS; i++)
-		{
-			// insert the new key in its correct position in the mix.
-			if( key < currentNode->getKey(i) )
-			{
-				tempKeyData[i] = key;
-				tempPtrData[i] = NULL;
-				i += 1;
-			}
-
-			tempKeyData[i] = currentNode->getKey(i);
-			tempPtrData[i] = currentNode->getPtr(i);
-		}
-
 		// create the new node
 		newNode = new BtreeLeaf();
 		newNode->set_parentPtr( currentNode->get_parentPtr() );
@@ -153,6 +193,44 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey, BtreeNode* currentN
 		parentKey = newNode->getKey(0);
 		leftPtr = (BtreeNode*)currentNode;
 		rightPtr = (BtreeNode*)newNode;
+	}
+	else
+	{
+		// this is the logic for the index
+		newNode = new BtreeIndex();
+		newNode->set_parentPtr( currentNode->get_parentPtr() );
+
+		// wipe the old node back to zero keys
+		currentNode->set_keyCount(0);
+
+		// figure out which one is the middle key.
+		int middlePtrIndex = maxTempPtrsSize / 2;
+
+		/* Distribute the data amidst the two nodes */
+		for (int i = 0; i < MAX_NUM_KEYS + 1; i++)
+		{
+			BtreeIndex* indexNode = NULL;
+			if (i <= middlePtrIndex)
+			{
+				indexNode = (BtreeIndex*) currentNode;
+			}
+			else if (i > middlePtrIndex)
+			{
+				indexNode = (BtreeLeaf*) newNode;
+			}
+
+			if (indexNode != NULL)
+			{
+				Status sts = indexNode->insertKey(tempKeyData[i], 0);
+				if (sts != OK)
+				{
+					cout << "Something went horribly awry" << endl;
+					exit(2);
+				}
+			}
+
+
+
 	}
 
 	return OK;
