@@ -32,14 +32,25 @@ Status BtreeBuilder::insertBuilderKey( KeyId newKey )
 	 */
 	if (retStatus == LEAF_IS_FULL)
 	{
-		KeyId* parentId;
+		KeyId parentId;
 		BtreeNode* currentNode = leaf;
 		BtreeNode* leftPtr = NULL;
 		BtreeNode* rightPtr = NULL;
 
-		retStatus = splitNode(0, parentId, currentNode, leftPtr, rightPtr );
-		if( retStatus == DONE )
+		retStatus = splitNode( newKey, parentId, currentNode, leftPtr, rightPtr );
+		if( retStatus == OK )
 		{
+			BtreeIndex* indexPtr = (BtreeIndex*)leaf->get_parentPtr();
+			if (indexPtr == NULL)
+			{
+				indexPtr = new BtreeIndex();
+				leftPtr->set_parentPtr(indexPtr);
+				rightPtr->set_parentPtr(indexPtr);
+			}
+			else
+			{
+				retStatus = indexPtr->insertKey(parentId,)
+			}
 
 		}
 		else
@@ -48,9 +59,13 @@ Status BtreeBuilder::insertBuilderKey( KeyId newKey )
 		}
 	}
 
-	return DONE;
+	return OK;
 }
 
+/*
+ * FUNCTION: 		BtreeBuilder::searchForLeafNode
+ * DESCRIPTION: 	given a node, it searches for and returns the correct leaf
+ */
 Status BtreeBuilder::searchForLeafNode( KeyId key, BtreeNode* root, BtreeNode*& leaf )
 {
 	BtreeNode* searchNode = root;
@@ -74,8 +89,7 @@ Status BtreeBuilder::deleteBuilderKey( KeyId delKey )
 	return OK;
 }
 
-Status BtreeBuilder::splitNode( KeyId key, KeyId*& parentKey,
-	BtreeNode* currentNode, BtreeNode*& leftPtr, BtreeNode*& rightPtr )
+Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey, BtreeNode* currentNode, BtreeNode*& leftPtr, BtreeNode*& rightPtr )
 {
 	BtreeNode* newNode = NULL;
 
@@ -116,7 +130,7 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId*& parentKey,
 		for( int i=0; i<MAX_NUM_KEYS+1; i++ )
 		{
 			BtreeLeaf* leafNode = NULL;
-			if( i < middleKeyIndex )
+			if( i <= middleKeyIndex )
 			{
 				leafNode = (BtreeLeaf*)currentNode;
 			}
@@ -131,15 +145,14 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId*& parentKey,
 				if( sts != OK )
 				{
 					cout << "Something went horribly awry" << endl;
+					exit(2);
 				}
 			}
 		}
 
-
-	}
-	else
-	{
-		newNode = new BtreeIndex();
+		parentKey = newNode->getKey(0);
+		leftPtr = (BtreeNode*)currentNode;
+		rightPtr = (BtreeNode*)newNode;
 	}
 
 	return OK;

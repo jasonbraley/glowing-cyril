@@ -46,7 +46,7 @@ class BtreeBuilder
 		//In 2nd arg, we store the key value that we need to insert in parent node after splitting node
 		//3rd is the node which is full and needs split
 		//4th and 5th holds the new left and right child address(we need to store this in parent node)
-		Status splitNode( KeyId, KeyId *&, BtreeNode *, BtreeNode *&, BtreeNode *& );
+		Status splitNode( KeyId, KeyId&, BtreeNode *, BtreeNode *&, BtreeNode *& );
 
 		// create a scan with given keys
 		// Cases:
