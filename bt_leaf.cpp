@@ -15,12 +15,7 @@ Status BtreeLeaf::insertKey( KeyId newKey, int value )
 	BtreeNode* currentValue = (BtreeNode*)value;
 	Status retStatus = DONE;
 
-	if (numCurrentKeys == 0)
-	{
-		key[0] = currentKey;
-		ptr[0] = currentValue;
-	}
-	else if( numCurrentKeys == MAX_NUM_KEYS )
+	if( numCurrentKeys == MAX_NUM_KEYS )
 	{
 		retStatus = LEAF_IS_FULL;
 	}
@@ -53,9 +48,15 @@ Status BtreeLeaf::insertKey( KeyId newKey, int value )
 		 * in the node. Or it may be a leftover element that got shifted
 		 * right by one.
 		 */
-		key[numCurrentKeys+1] = currentKey;
-		ptr[numCurrentKeys+1] = (BtreeNode*)currentValue;
+		key[numCurrentKeys] = currentKey;
+		ptr[numCurrentKeys] = (BtreeNode*)currentValue;
+
+		/*
+		 * Increment the current key count.
+		 */
+		set_keyCount( numCurrentKeys + 1 );
 	}
+
 
 	return (retStatus);
 }
