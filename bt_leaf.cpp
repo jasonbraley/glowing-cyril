@@ -61,9 +61,20 @@ Status BtreeLeaf::insertKey( KeyId newKey, int value )
 	return (retStatus);
 }
 
-Status BtreeLeaf::deleteKey( KeyId key, int value )
+Status BtreeLeaf::deleteKey( KeyId delKey, int value )
 {
-	return DONE;
+  int numCurrentKeys = get_keyCount();
+  KeyId currentKey = delKey;
+  BtreeNode* currentValue = (BtreeNode*) value;
+  int i;
+
+  for(i = 0; i < numCurrentKeys; ++i) {
+    if(getKey(i) == currentKey && getPtr(i) == currentValue)
+      break;
+  }
+
+  if(i == numCurrentKeys)
+    return KEY_NOT_FOUND;
 }
 
 Status BtreeLeaf::searchKey( KeyId key, int value )
