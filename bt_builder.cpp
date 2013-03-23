@@ -121,7 +121,11 @@ Status BtreeBuilder::searchForLeafNode( KeyId key, BtreeNode* root,
 
 Status BtreeBuilder::deleteBuilderKey( KeyId delKey )
 {
-	return OK;
+  BtreeNode* node = NULL;
+
+  searchForLeafNode(delKey, root, node);
+
+  return node->deleteKey(delKey, 0);
 }
 
 /*
