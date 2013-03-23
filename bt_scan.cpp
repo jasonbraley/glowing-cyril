@@ -16,6 +16,24 @@ Status BtreeScan::set_leaf(BtreeNode* l) {
   return OK;
 }
 
+int BtreeScan::get_pos() {
+  return pos;
+}
+
+Status BtreeScan::set_pos(int p) {
+  pos = p;
+  return OK;
+}
+
+KeyId BtreeScan::get_endKey() {
+  return endKey;
+}
+
+Status BtreeScan::set_endKey(KeyId e) {
+  endKey = e;
+  return OK;
+}
+
 Status BtreeScan::getNext(int *i) {
   return OK;
 }
