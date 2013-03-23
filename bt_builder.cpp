@@ -64,6 +64,7 @@ Status BtreeBuilder::insertBuilderKey( KeyId argKey )
 			if (indexPtr == NULL)
 			{
 				indexPtr = new BtreeIndex();
+				root = (BtreeNode*) indexPtr;
 				leftPtr->set_parentPtr(indexPtr);
 				rightPtr->set_parentPtr(indexPtr);
 			}
@@ -135,7 +136,7 @@ Status BtreeBuilder::deleteBuilderKey( KeyId delKey )
  * 				leftPtr is updated with the address of the original node
  * 				rightPtr is updated with the address of the new node created.
  */
-Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey,
+Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 		BtreeNode* currentNode, BtreeNode*& leftPtr, BtreeNode*& rightPtr )
 {
 	BtreeNode* newNode = NULL;
@@ -160,9 +161,9 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey,
 		 * Check to see whether we should insert here. If so,
 		 * we copy in the key and advance our array entry counter.
 		 */
-		if (key < currentNode->getKey(i))
+		if (newKey < currentNode->getKey(i))
 		{
-			tempKeyData[tempIndex] = key;
+			tempKeyData[tempIndex] = newKey;
 			tempPtrData[tempIndex + 1] = rightPtr;
 			tempIndex += 1;
 		}
@@ -172,7 +173,7 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey,
 		 * location.
 		 */
 		tempKeyData[tempIndex] = currentNode->getKey(i);
-		tempPtrData[tempIndex] = currentNode->getPtr(i + 1);
+		tempPtrData[tempIndex+1] = currentNode->getPtr(i + 1);
 	}
 
 	/*
@@ -180,7 +181,7 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey,
 	 */
 	if (i == tempIndex)
 	{
-		tempKeyData[MAX_NUM_KEYS] = key;
+		tempKeyData[MAX_NUM_KEYS] = newKey;
 		tempPtrData[MAX_NUM_PTRS] = rightPtr;
 	}
 
@@ -215,7 +216,7 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey,
 			if (leafNode != NULL)
 			{
 				Status sts = leafNode->insertKey(tempKeyData[i], 0);
-				if (sts != OK)
+				if (sts != DONE)
 				{
 					cout << "Something went horribly awry" << endl;
 					exit(2);
@@ -238,28 +239,31 @@ Status BtreeBuilder::splitNode( KeyId key, KeyId& parentKey,
 
 		// figure out which one is the middle ptr.
 		int middlePtrIndex = (MAX_NUM_PTRS + 1) / 2;
-
+		tempIndex = 0;
 		/* Distribute the data amidst the two nodes */
-		for (int i = 0; i < MAX_NUM_PTRS + 1; i++)
+		for (int i = 0; i < MAX_NUM_PTRS + 1; i++, tempIndex++)
 		{
 			BtreeIndex* indexNode = NULL;
 			if (i < middlePtrIndex)
 			{
 				indexNode = (BtreeIndex*) currentNode;
-				indexNode->setPtr(tempPtrData[i], i);
-				indexNode->setKey(i, tempKeyData[i]);
+				indexNode->setPtr(tempPtrData[i], tempIndex);
+				indexNode->setKey(tempIndex, tempKeyData[i]);
+				indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
 			}
 			else if (i == middlePtrIndex)
 			{
 				indexNode = (BtreeIndex*) currentNode;
-				indexNode->setPtr(tempPtrData[i], i);
+				indexNode->setPtr(tempPtrData[i], tempIndex);
 				parentKey = tempKeyData[i];
+				tempIndex = -1;
 			}
 			else if (i > middlePtrIndex)
 			{
 				indexNode = (BtreeIndex*) newNode;
-				indexNode->setPtr(tempPtrData[i], i);
-				indexNode->setKey(i, tempKeyData[i]);
+				indexNode->setPtr(tempPtrData[i], tempIndex);
+				indexNode->setKey(tempIndex, tempKeyData[i]);
+				indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
 			}
 		}
 
