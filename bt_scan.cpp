@@ -34,6 +34,6 @@ Status BtreeScan::set_endKey(KeyId e) {
   return OK;
 }
 
-Status BtreeScan::getNext(int *i) {
+Status BtreeScan::getNext(KeyId* key) {
   return OK;
 }
