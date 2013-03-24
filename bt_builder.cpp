@@ -184,6 +184,8 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 	// is keys. Make sure we don't overrun the buffer.
 	int tempIndex = 0;
 	int i;
+	int has_inserted = 0;
+
 	for (i = 0; i < MAX_NUM_KEYS; i++, tempIndex++)
 	{
 		/*
@@ -198,11 +200,12 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 		 * Check to see whether we should insert here. If so,
 		 * we copy in the key and advance our array entry counter.
 		 */
-		if (newKey < currentNode->getKey(i))
+		if (newKey < currentNode->getKey(i) && !has_inserted)
 		{
 			tempKeyData[tempIndex] = newKey;
 			tempPtrData[tempIndex + 1] = rightPtr;
 			tempIndex += 1;
+			has_inserted = 1;
 		}
 
 		/*
