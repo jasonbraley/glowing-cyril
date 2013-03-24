@@ -303,6 +303,7 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 				       indexNode->setKey(tempIndex, tempKeyData[i]);
 				       indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
 				}
+                                indexNode->getPtr(tempIndex)->set_parentPtr(indexNode);
 			}
 		}
 
