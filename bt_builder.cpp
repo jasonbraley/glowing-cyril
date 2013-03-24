@@ -294,8 +294,10 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 			{
 				indexNode = (BtreeIndex*) newNode;
 				indexNode->setPtr(tempPtrData[i], tempIndex);
-				indexNode->setKey(tempIndex, tempKeyData[i]);
-				indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
+				if(i < MAX_NUM_KEYS + 1) {
+				       indexNode->setKey(tempIndex, tempKeyData[i]);
+				       indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
+				}
 			}
 		}
 
