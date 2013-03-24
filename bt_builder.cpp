@@ -9,40 +9,50 @@
 #include <unistd.h>
 #include "bt_builder.h"
 
-static int check_tree( BtreeNode* node, KeyId low, KeyId high )
-{
-	int i;
-	KeyId previous;
+static int check_tree(BtreeNode* node, KeyId low, KeyId high) {
+  int i;
+  KeyId previous;
 
-	/* Check keys to see if they meet the bounds set above */
-	previous = low;
-	for (i = 0; i < node->get_keyCount(); ++i)
-	{
-		if (node->getKey(i) < previous || node->getKey(i) >= high)
-			assert(0);
+  /* Check keys to see if they meet the bounds set above */
+  previous = low;
+  for(i = 0; i < node->get_keyCount(); ++i) {
+    if(node->getKey(i) < previous || node->getKey(i) >= high)
+      assert(0);
 
-		previous = node->getKey(i);
-	}
+    previous = node->getKey(i);
+  }
 
-	/* If this isn't a leaf, arrange to check children. */
-	if (node->get_type() == INDEX)
-	{
-		/* Check each child pointer's parent pointer to ensure they point to us. */
-		for (i = 0; i < node->get_keyCount() + 1; ++i)
-			assert(node->getPtr(i)->get_parentPtr() == node);
+  /* If this is a leaf, the next pointer, if present, must point to 
+     another leaf. */
+  if(node->get_type() == LEAF) {
+    assert(node->getPtr(MAX_NUM_PTRS - 1) == NULL ||
+	   node->getPtr(MAX_NUM_PTRS - 1)->get_type() == LEAF);
+  }
 
-		/* Recursively check children. */
-		previous = low;
-		for (i = 0; i < node->get_keyCount(); ++i)
-		{
-			check_tree(node->getPtr(i), previous, node->getKey(i));
-			previous = node->getKey(i);
-		}
+  /* If this isn't a leaf, arrange to check children. */
+  if(node->get_type() == INDEX) {
+    /* Check each child pointer's parent pointer to ensure they point to us. */
+    for(i = 0; i < node->get_keyCount() + 1; ++i)
+      assert(node->getPtr(i)->get_parentPtr() == node);
 
-		check_tree(node->getPtr(i), previous, high);
-	}
+    /* If the children are leaves, check their end pointers */
+    if(node->getPtr(0) && node->getPtr(0)->get_type() == LEAF) {
+      for(i = 0; i < node->get_keyCount(); ++i)
+	assert(node->getPtr(i)->getPtr(MAX_NUM_PTRS - 1) ==
+	       node->getPtr(i+1));
+    }
 
-	return 0;
+    /* Recursively check children. */
+    previous = low;
+    for(i = 0; i < node->get_keyCount(); ++i) {
+      check_tree(node->getPtr(i), previous, node->getKey(i));
+      previous = node->getKey(i);
+    }
+
+    check_tree(node->getPtr(i), previous, high);
+  }
+
+  return 0;
 }
 
 BtreeBuilder::~BtreeBuilder()
