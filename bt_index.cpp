@@ -47,7 +47,7 @@ Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 				BtreeNode* tempPtr = getPtr(i+1);
 
 			        setKey(i, currentKey);
-				setPtr(rightChild, i+1);
+				setPtr(currentValue, i+1);
 
 				currentKey = tempKey;
 				currentValue = tempPtr;
