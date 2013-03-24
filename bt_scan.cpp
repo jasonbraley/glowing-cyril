@@ -3,7 +3,12 @@
 #include "bt_node.h"
 #include "bt_scan.h"
 
-BtreeScan::BtreeScan() {}
+BtreeScan::BtreeScan()
+{
+	leaf = NULL;
+	endKey = 0;
+	pos = 0;
+}
 
 BtreeScan::~BtreeScan()
 {
