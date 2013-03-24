@@ -3,51 +3,66 @@
 #include "bt_node.h"
 #include "bt_scan.h"
 
-BtreeScan::BtreeScan() {}
-
-BtreeScan::~BtreeScan() {}
-
-BtreeNode* BtreeScan::get_leaf() {
-  return leaf;
+BtreeScan::BtreeScan()
+{
+	pos = 0;
+	endKey = 0;
+	leaf = NULL;
 }
 
-Status BtreeScan::set_leaf(BtreeNode* l) {
-  leaf = l;
-  return OK;
+BtreeScan::~BtreeScan()
+{
 }
 
-int BtreeScan::get_pos() {
-  return pos;
+BtreeNode* BtreeScan::get_leaf()
+{
+	return leaf;
 }
 
-Status BtreeScan::set_pos(int p) {
-  pos = p;
-  return OK;
+Status BtreeScan::set_leaf( BtreeNode* l )
+{
+	leaf = l;
+	return OK;
 }
 
-KeyId BtreeScan::get_endKey() {
-  return endKey;
+int BtreeScan::get_pos()
+{
+	return pos;
 }
 
-Status BtreeScan::set_endKey(KeyId e) {
-  endKey = e;
-  return OK;
+Status BtreeScan::set_pos( int p )
+{
+	pos = p;
+	return OK;
 }
 
-Status BtreeScan::getNext(KeyId* key) {
-  KeyId result;
+KeyId BtreeScan::get_endKey()
+{
+	return endKey;
+}
 
-  // If no more keys on this leaf, move right.
-  if(get_pos() > get_leaf()->get_keyCount()) {
-    set_leaf(get_leaf()->getPtr(MAX_NUM_PTRS));
-    set_pos(0);
-  }
+Status BtreeScan::set_endKey( KeyId e )
+{
+	endKey = e;
+	return OK;
+}
 
-  // If we ran out of keys...
-  if(get_pos() > get_leaf()->get_keyCount() ||
-     (get_endKey() && get_endKey() < (get_leaf()->getKey(get_pos()))))
-    return NO_MORE_KEYS; // XXX is this the right code?
+Status BtreeScan::getNext( KeyId* key )
+{
+	KeyId result;
 
-  *key = result;
-  return OK;
+	// If no more keys on this leaf, move right.
+	if (get_pos() > get_leaf()->get_keyCount())
+	{
+		set_leaf(get_leaf()->getPtr(MAX_NUM_PTRS));
+		set_pos(0);
+	}
+
+	// If we ran out of keys...
+	if (get_pos() > get_leaf()->get_keyCount()
+			|| (get_endKey() && get_endKey() < (get_leaf()->getKey(get_pos()))))
+		return NO_MORE_KEYS; // XXX is this the right code?
+
+	*key = result;
+	return OK;
 }

@@ -22,9 +22,9 @@ Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 	}
 	else if (numCurrentKeys == 0)
 	{
-                setPtr(leftChild, 0);
-                setPtr(rightChild, 1);
-                setKey(0, newKey);
+		setPtr(leftChild, 0);
+		setPtr(rightChild, 1);
+		setKey(0, newKey);
 
 		/*
 		 * Increment the current key count.
@@ -41,13 +41,13 @@ Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 		 */
 		for (int i = 0; i < numCurrentKeys; i++)
 		{
-		        if (getKey(i) > currentKey)
+			if (getKey(i) > currentKey)
 			{
-			        KeyId tempKey = getKey(i);
-				BtreeNode* tempPtr = getPtr(i+1);
+				KeyId tempKey = getKey(i);
+				BtreeNode* tempPtr = getPtr(i + 1);
 
-			        setKey(i, currentKey);
-				setPtr(currentValue, i+1);
+				setKey(i, currentKey);
+				setPtr(currentValue, i + 1);
 
 				currentKey = tempKey;
 				currentValue = tempPtr;
@@ -81,9 +81,9 @@ Status BtreeIndex::searchKey( KeyId searchKey, int int2, BtreeNode*& childPtr )
 {
 	childPtr = NULL;
 
-	for( int i=0; i<keyCount; i++ )
+	for (int i = 0; i < keyCount; i++)
 	{
-		if( searchKey < key[i] )
+		if (searchKey < key[i])
 		{
 			childPtr = ptr[i];
 			break;
@@ -94,7 +94,7 @@ Status BtreeIndex::searchKey( KeyId searchKey, int int2, BtreeNode*& childPtr )
 	 * If we didn't take the less than path, return the
 	 * far right ptr in the list.
 	 */
-	if( childPtr == NULL )
+	if (childPtr == NULL)
 	{
 		childPtr = ptr[keyCount];
 	}
