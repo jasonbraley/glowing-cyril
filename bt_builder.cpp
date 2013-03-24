@@ -23,7 +23,7 @@ static int check_tree(BtreeNode* node, KeyId low, KeyId high) {
   }
 
   /* If this isn't a leaf, arrange to check children. */
-  if(!(node->get_type() == LEAF)) {
+  if(node->get_type() == INDEX) {
     previous = low;
     for(i = 0; i < node->get_keyCount(); ++i) {
       check_tree(node->getPtr(i), previous, node->getKey(i));
