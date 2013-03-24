@@ -120,7 +120,8 @@ Status BtreeBuilder::insertBuilderKey( KeyId argKey )
 			retStatus = indexPtr->insertKey(newKey, 0, leftPtr, rightPtr);
 			if (retStatus == INDEX_IS_FULL)
 			{
-				retStatus = splitNode(newKey, parentId, indexPtr, leftPtr, rightPtr);
+				retStatus = splitNode(newKey, parentId, indexPtr, leftPtr,
+						rightPtr);
 				if (retStatus != OK)
 				{
 					cout << "Something is borked" << endl;
@@ -168,11 +169,11 @@ Status BtreeBuilder::searchForLeafNode( KeyId key, BtreeNode* root,
 
 Status BtreeBuilder::deleteBuilderKey( KeyId delKey )
 {
-  BtreeNode* node = NULL;
+	BtreeNode* node = NULL;
 
-  searchForLeafNode(delKey, root, node);
+	searchForLeafNode(delKey, root, node);
 
-  return node->deleteKey(delKey, 0);
+	return node->deleteKey(delKey, 0);
 }
 
 /*
@@ -208,6 +209,7 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 		if (i == 0)
 		{
 			tempPtrData[i] = currentNode->getPtr(i);
+			currentNode->setPtr(0, i);
 		}
 
 		/*
@@ -227,7 +229,10 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 		 * location.
 		 */
 		tempKeyData[tempIndex] = currentNode->getKey(i);
-		tempPtrData[tempIndex+1] = currentNode->getPtr(i + 1);
+		tempPtrData[tempIndex + 1] = currentNode->getPtr(i + 1);
+
+		currentNode->setKey(i, 0);
+		currentNode->setPtr(0, i+1);
 	}
 
 	/*
@@ -303,7 +308,7 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 				indexNode = (BtreeIndex*) currentNode;
 				indexNode->setPtr(tempPtrData[i], tempIndex);
 				indexNode->setKey(tempIndex, tempKeyData[i]);
-				indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
+				indexNode->set_keyCount(indexNode->get_keyCount() + 1);
 			}
 			else if (i == middlePtrIndex)
 			{
@@ -316,11 +321,14 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 			{
 				indexNode = (BtreeIndex*) newNode;
 				indexNode->setPtr(tempPtrData[i], tempIndex);
-				if(i < MAX_NUM_KEYS + 1) {
-				       indexNode->setKey(tempIndex, tempKeyData[i]);
-				       indexNode->set_keyCount( indexNode->get_keyCount() + 1 );
+
+				if (i < MAX_NUM_KEYS + 1)
+				{
+					indexNode->setKey(tempIndex, tempKeyData[i]);
+					indexNode->set_keyCount(indexNode->get_keyCount() + 1);
 				}
-                                indexNode->getPtr(tempIndex)->set_parentPtr(indexNode);
+
+				indexNode->getPtr(tempIndex)->set_parentPtr(indexNode);
 			}
 		}
 
@@ -333,7 +341,15 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 
 BtreeScan* BtreeBuilder::openScan( KeyId lo_key, KeyId hi_key )
 {
-	return (new BtreeScan());
+	BtreeScan *scan = new BtreeScan();
+	BtreeNode* leaf = NULL;
+
+	searchForLeafNode( lo_key, root, leaf );
+
+	scan->set_leaf(leaf);
+	scan->set_endKey(hi_key);
+
+	return (scan);
 }
 
 Status BtreeBuilder::findStartPosition( BtreeScan* scanner, KeyId int1 )
