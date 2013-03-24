@@ -5,8 +5,36 @@
  *      Author: jasonbraley
  */
 
+#include <assert.h>
 #include <unistd.h>
 #include "bt_builder.h"
+
+static int check_tree(BtreeNode* node, KeyId low, KeyId high) {
+  int i;
+  KeyId previous;
+
+  /* Check keys to see if they meet the bounds set above */
+  previous = low;
+  for(i = 0; i < node->get_keyCount(); ++i) {
+    if(node->getKey(i) < previous || node->getKey(i) >= high)
+      assert(0);
+
+    previous = node->getKey(i);
+  }
+
+  /* If this isn't a leaf, arrange to check children. */
+  if(!(node->get_type() == LEAF)) {
+    previous = low;
+    for(i = 0; i < node->get_keyCount(); ++i) {
+      check_tree(node->getPtr(i), previous, node->getKey(i));
+      previous = node->getKey(i);
+    }
+
+    check_tree(node->getPtr(i), previous, high);
+  }
+
+  return 0;
+}
 
 BtreeBuilder::~BtreeBuilder()
 {
@@ -92,6 +120,7 @@ Status BtreeBuilder::insertBuilderKey( KeyId argKey )
 
 		}
 	}
+	assert(!check_tree(root, 0, 100000));
 
 	return OK;
 }
