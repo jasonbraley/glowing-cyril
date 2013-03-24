@@ -341,15 +341,24 @@ Status BtreeBuilder::splitNode( KeyId newKey, KeyId& parentKey,
 
 BtreeScan* BtreeBuilder::openScan( KeyId lo_key, KeyId hi_key )
 {
-	BtreeScan *scan = new BtreeScan();
-	BtreeNode* leaf = NULL;
+  BtreeScan* b;
+  BtreeNode* leaf;
+  int low_key_pos;
 
-	searchForLeafNode( lo_key, root, leaf );
+  searchForLeafNode(lo_key, root, leaf);
 
-	scan->set_leaf(leaf);
-	scan->set_endKey(hi_key);
+  // The provided interface for BtreeNode::searchKey doesn't actually
+  // return the index of a given key. So we have to do it here, which
+  // unnecessarily increases coupling.
+  for(low_key_pos = 0; low_key_pos < leaf->get_keyCount(); ++low_key_pos)
+    if(lo_key <= leaf->getKey(low_key_pos)) break;
 
-	return (scan);
+  b = new BtreeScan();
+  b->set_leaf(leaf);
+  b->set_pos(low_key_pos);
+  b->set_endKey(hi_key);
+
+  return b;
 }
 
 Status BtreeBuilder::findStartPosition( BtreeScan* scanner, KeyId int1 )

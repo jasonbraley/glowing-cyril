@@ -50,7 +50,7 @@ Status BtreeScan::set_endKey( KeyId e )
 Status BtreeScan::getNext(KeyId* key) {
   // If no more keys on this leaf, move right.
   if(get_pos() >= get_leaf()->get_keyCount()) {
-    set_leaf(get_leaf()->getPtr(MAX_NUM_PTRS-1));
+    set_leaf(get_leaf()->getPtr(MAX_NUM_PTRS - 1));
     set_pos(0);
   }
 
