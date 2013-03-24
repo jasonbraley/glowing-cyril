@@ -247,7 +247,7 @@ void BtreeTest::test4()
 
 	cout << "range tree scan first to 500" << endl;
 	new_scan = btb->openScan(NULL, 500);
-	while ((status = new_scan->getNext((int*) &key)) == OK)
+	while ((status = new_scan->getNext(key)) == OK)
 	{
 		count++;
 		cout << "Scanned key [" << *key << "]" << endl;
@@ -256,7 +256,7 @@ void BtreeTest::test4()
 
 	cout << "range tree scan 500 to 1000" << endl;
 	new_scan = btb->openScan(500, 1000);
-	while ((status = new_scan->getNext((int*)&key)) == OK)
+	while ((status = new_scan->getNext(key)) == OK)
 	{
 		count++;
 		cout << "Scanned key [" << *key << "]" << endl;
@@ -265,7 +265,7 @@ void BtreeTest::test4()
 
 	cout << "range tree scan 1500 to last" << endl;
 	new_scan = btb->openScan(1500, NULL);
-	while ((status = new_scan->getNext((int*)&key)) == OK)
+	while ((status = new_scan->getNext(key)) == OK)
 	{
 		count++;
 		cout << "Scanned key [" << *key << "]" << endl;
