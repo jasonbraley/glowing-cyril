@@ -11,7 +11,6 @@
 BtreeBuilder::~BtreeBuilder()
 {
 	destroyBtree();
-	delete root;
 }
 
 Status BtreeBuilder::insertBuilderKey( KeyId argKey )
@@ -321,5 +320,9 @@ Status BtreeBuilder::findStartPosition( BtreeScan* scanner, KeyId int1 )
 
 Status BtreeBuilder::destroyBtree()
 {
+	if(root) {
+		delete root;
+		root = NULL;
+	}
 	return OK;
 }

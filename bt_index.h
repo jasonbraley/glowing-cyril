@@ -26,9 +26,7 @@ class BtreeIndex: public BtreeNode
 			//include all other initializations here
 		};
 
-		virtual ~BtreeIndex()
-		{
-		};
+		virtual ~BtreeIndex();
 
 		//insert key of type "KeyId", keyCount of type "int", leftChild and rightChild pointers of type BtreeNode*
 		Status insertKey( KeyId, int, BtreeNode*& leftChild,

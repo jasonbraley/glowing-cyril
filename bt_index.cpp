@@ -8,6 +8,14 @@
 #include "bt_errors.h"
 #include "bt_index.h"
 
+BtreeIndex::~BtreeIndex()
+{
+	for(int i = 0; i < get_keyCount() + 1; ++i) {
+		if(getPtr(i))
+			delete getPtr(i);
+	}
+}
+
 Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 		BtreeNode*& rightChild )
 {
