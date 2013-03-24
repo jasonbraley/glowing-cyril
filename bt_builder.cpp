@@ -120,7 +120,6 @@ Status BtreeBuilder::insertBuilderKey( KeyId argKey )
 
 		}
 	}
-	assert(!check_tree(root, 0, 100000));
 
 	return OK;
 }
