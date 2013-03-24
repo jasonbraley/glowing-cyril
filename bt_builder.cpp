@@ -24,6 +24,11 @@ static int check_tree(BtreeNode* node, KeyId low, KeyId high) {
 
   /* If this isn't a leaf, arrange to check children. */
   if(node->get_type() == INDEX) {
+    /* Check each child pointer's parent pointer to ensure they point to us. */
+    for(i = 0; i < node->get_keyCount() + 1; ++i)
+      assert(node->getPtr(i)->get_parentPtr() == node);
+
+    /* Recursively check children. */
     previous = low;
     for(i = 0; i < node->get_keyCount(); ++i) {
       check_tree(node->getPtr(i), previous, node->getKey(i));
