@@ -22,9 +22,9 @@ Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 	}
 	else if (numCurrentKeys == 0)
 	{
-		ptr[0] = leftChild;
-		ptr[1] = rightChild;
-		key[0] = newKey;
+                setPtr(leftChild, 0);
+                setPtr(rightChild, 1);
+                setKey(0, newKey);
 
 		/*
 		 * Increment the current key count.
@@ -41,13 +41,13 @@ Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 		 */
 		for (int i = 0; i < numCurrentKeys; i++)
 		{
-			if (key[i] > currentKey)
+		        if (getKey(i) > currentKey)
 			{
-				KeyId tempKey = key[i];
-				BtreeNode* tempPtr = ptr[i+1];
+			        KeyId tempKey = getKey(i);
+				BtreeNode* tempPtr = getPtr(i+1);
 
-				key[i] = currentKey;
-				ptr[i + 1] = (BtreeNode*) rightChild;
+			        setKey(i, currentKey);
+				setPtr(rightChild, i+1);
 
 				currentKey = tempKey;
 				currentValue = tempPtr;
@@ -60,8 +60,8 @@ Status BtreeIndex::insertKey( KeyId newKey, int keyCount, BtreeNode*& leftChild,
 		 * in the node. Or it may be a leftover element that got shifted
 		 * right by one.
 		 */
-		key[numCurrentKeys] = currentKey;
-		ptr[numCurrentKeys + 1] = (BtreeNode*) currentValue;
+		setKey(numCurrentKeys, currentKey);
+		setPtr(currentValue, numCurrentKeys + 1);
 
 		/*
 		 * Increment the current key count.
