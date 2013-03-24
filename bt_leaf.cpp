@@ -66,7 +66,7 @@ Status BtreeLeaf::deleteKey( KeyId delKey, int value )
   int numCurrentKeys = get_keyCount();
   KeyId currentKey = delKey;
   BtreeNode* currentValue = (BtreeNode*) value;
-  int i;
+  int i, j;
 
   for(i = 0; i < numCurrentKeys; ++i) {
     if(getKey(i) == currentKey && getPtr(i) == currentValue)
@@ -75,6 +75,13 @@ Status BtreeLeaf::deleteKey( KeyId delKey, int value )
 
   if(i == numCurrentKeys)
     return KEY_NOT_FOUND;
+
+  for(j = i + 1; j < numCurrentKeys; ++i, ++j)
+    setKey(i, getKey(j));
+
+  set_keyCount(numCurrentKeys - 1);
+
+  return OK;
 }
 
 Status BtreeLeaf::searchKey( KeyId key, int value )
