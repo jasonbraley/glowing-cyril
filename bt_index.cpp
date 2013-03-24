@@ -86,6 +86,7 @@ Status BtreeIndex::searchKey( KeyId searchKey, int int2, BtreeNode*& childPtr )
 		if( searchKey <= key[i] )
 		{
 			childPtr = ptr[i];
+			break;
 		}
 	}
 
